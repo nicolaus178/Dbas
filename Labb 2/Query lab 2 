@@ -1,7 +1,6 @@
 
 1. 
 --Display posts and tags
---Text
 SELECT Post.Title,
        STRING_AGG(PostTag.Tag, ', ') AS Tags
 FROM Post
@@ -35,6 +34,45 @@ FROM
   RankedPosts
 WHERE 
   rank <= 5;  -- Return only the top 5 posts
+
+3.
+-- Count subscriptions in the given period and separate first-time and returning users
+WITH SubscriptionsWithWeek AS (
+    SELECT 
+        UserID,
+        Date,
+        DATE_PART('week', Date) AS WeekNumber
+    FROM Subscription
+),
+FirstSubscriptions AS (
+    SELECT 
+        UserID, 
+        MIN(Date) AS FirstSubscriptionDate
+    FROM Subscription
+    GROUP BY UserID
+),
+NumberOfPosts AS (
+    SELECT
+        UserID,
+        DATE_PART('week', Date) AS WeekNumber,
+        COUNT(PostID) AS NumberOfPosts
+    FROM Post
+    GROUP BY UserID, WeekNumber
+),
+AllWeeks AS (
+    SELECT generate_series(1, 52) AS WeekNumber  -- assuming a year of 52 weeks
+)
+SELECT
+    w.WeekNumber,
+    SUM(CASE WHEN s.Date = f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS new_costumers,
+    SUM(CASE WHEN s.Date != f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS kept_costumers,
+    COALESCE(SUM(p.NumberOfPosts), 0) AS Activity
+FROM AllWeeks w  -- Use AllWeeks as the base table for weeks
+LEFT JOIN SubscriptionsWithWeek s ON s.WeekNumber = w.WeekNumber
+LEFT JOIN FirstSubscriptions f ON s.UserID = f.UserID
+LEFT JOIN NumberOfPosts p ON s.UserID = p.UserID AND s.WeekNumber = p.WeekNumber
+GROUP BY w.WeekNumber
+ORDER BY w.WeekNumber;
 
 
 
