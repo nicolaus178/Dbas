@@ -1,3 +1,5 @@
+
+1. 
 --Display posts and tags
 --Text
 SELECT Post.Title,
@@ -5,3 +7,31 @@ SELECT Post.Title,
 FROM Post
 LEFT JOIN PostTag ON Post.PostID = PostTag.PostID
 GROUP BY Post.Title;
+
+
+2.
+WITH RankedPosts AS (
+  SELECT 
+    p.PostID,                      -- Post ID
+    p.Title,                        -- Post Title
+    COUNT(l.PostID) AS likes_count, -- Number of Likes
+    RANK() OVER (ORDER BY COUNT(l.PostID) DESC) AS rank -- Ranking posts by likes count
+  FROM 
+    Post p
+  JOIN 
+    PostTag pt ON p.PostID = pt.PostID  -- Join to filter posts by tag
+  LEFT JOIN 
+    Likes l ON p.PostID = l.PostID     -- Left join to count likes
+  WHERE 
+    pt.Tag = '#leadership'  -- Filter for the '#leadership' tag
+  GROUP BY 
+    p.PostID, p.Title  -- Group by PostID and Title
+)
+SELECT 
+  PostID,
+  Title,
+  rank
+FROM 
+  RankedPosts
+WHERE 
+  rank <= 5;  -- Return only the top 5 posts
