@@ -1,0 +1,7 @@
+--Display posts and tags
+--Text
+SELECT Post.Title,
+       STRING_AGG(PostTag.Tag, ', ') AS Tags
+FROM Post
+LEFT JOIN PostTag ON Post.PostID = PostTag.PostID
+GROUP BY Post.Title;
