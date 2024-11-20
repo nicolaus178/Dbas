@@ -1,0 +1,96 @@
+--Find all users names
+SELECT fullname
+FROM users;
+Display all friend relationships
+SELECT u1.fullname AS Friend1,
+    u2.fullname AS Friend2
+FROM friends
+    JOIN users AS u1 ON friends.userid1 = u1.userid
+    JOIN users AS u2 ON friends.userid2 = u2.userid
+ORDER BY Friend1,
+    Friend2;
+
+
+--Display all posts 
+--Text
+SELECT Post.PostID,
+    Post.Title,
+    Users.FullName,
+    Post.Place,
+    Post.Date,
+    TextPost.TextContent,
+    STRING_AGG(Tags.Tagname, ', ') AS Tags
+FROM Post
+    JOIN TextPost ON Post.PostID = TextPost.PostID
+    JOIN Users ON Post.UserID = Users.UserID
+    LEFT JOIN Tags ON Post.PostID = Tags.PostID
+GROUP BY Post.PostID,
+    Users.FullName,
+    Post.Title,
+    Post.Place,
+    Post.Date,
+    TextPost.TextContent;
+
+--Image
+SELECT Post.PostID,
+    Post.Title,
+    Users.FullName,
+    Post.Place,
+    Post.Date,
+    ImagePost.ImageURL,
+    ImagePost.Filter,
+    STRING_AGG(Tags.Tagname, ', ') AS Tags
+FROM Post
+    JOIN ImagePost ON Post.PostID = ImagePost.PostID
+    JOIN Users ON Post.UserID = Users.UserID
+    LEFT JOIN Tags ON Post.PostID = Tags.PostID
+GROUP BY Post.PostID,
+    Users.FullName,
+    Post.Title,
+    Post.Place,
+    Post.Date,
+    ImagePost.ImageURL,
+    ImagePost.Filter;
+
+--Video
+SELECT Post.PostID,
+    Post.Title,
+    Users.FullName,
+    Post.Place,
+    Post.Date,
+    VideoPost.VideoURL,
+    STRING_AGG(Tags.Tagname, ', ') AS Tags
+FROM Post
+    JOIN VideoPost ON Post.PostID = VideoPost.PostID
+    JOIN Users ON Post.UserID = Users.UserID
+    LEFT JOIN Tags ON Post.PostID = Tags.PostID
+GROUP BY Post.PostID,
+    Users.FullName,
+    Post.Title,
+    Post.Place,
+    Post.Date,
+    VideoPost.VideoURL;
+
+--Display all events
+SELECT Events.EventID,
+    Users.FullName AS CreatorFullName,
+    Events.Title,
+    Events.Place,
+    Events.StartDate,
+    Events.EndDate,
+    EXTRACT(
+        DAY
+        FROM AGE(Events.EndDate, Events.StartDate)
+    ) AS EventLengthInDays
+FROM Events
+    JOIN Users ON Events.UserID = Users.UserID;
+
+--Display all subscriptions
+SELECT Subscription.SubscriptionID,
+    Users.FullName AS CustomerFullName,
+    Subscription.DateOfPayment,
+    Subscription.PaymentMethod,
+    Subscription.DateOfPayment + INTERVAL '30 days' AS SubscriptionEndDate
+FROM Subscription
+    JOIN Users ON Subscription.UserID = Users.UserID;
+

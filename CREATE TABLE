@@ -1,0 +1,82 @@
+CREATE TABLE "User" (
+    UserID INT PRIMARY KEY,
+    FullName VARCHAR(255)
+);
+
+CREATE TABLE Friends (
+    UserID1 INT,
+    UserID2 INT,
+    PRIMARY KEY (UserID1, UserID2),
+    FOREIGN KEY (UserID1) REFERENCES "User" (UserID),
+    FOREIGN KEY (UserID2) REFERENCES "User" (UserID)
+);
+
+CREATE TABLE Subscription (
+    SubscriptionID INT PRIMARY KEY,
+    UserID INT,
+    DateOfPayment DATE,
+    PaymentMethod VARCHAR(255),
+    FOREIGN KEY (UserID) REFERENCES "User" (UserID)
+);
+
+CREATE TABLE Events (
+    EventID INT PRIMARY KEY,
+    Title VARCHAR(255),
+    UserID INT,
+    Place VARCHAR(255),
+    StartDate DATE,
+    EndDate DATE,
+    FOREIGN KEY (UserID) REFERENCES "User" (UserID)
+);
+
+CREATE TABLE Attendees (
+    EventID INT,
+    UserID INT,
+    PRIMARY KEY (EventID, UserID),
+    FOREIGN KEY (EventID) REFERENCES Events (EventID),
+    FOREIGN KEY (UserID) REFERENCES "User" (UserID)
+);
+
+CREATE TABLE Post (
+    PostID INT PRIMARY KEY,
+    Title VARCHAR(255),
+    UserID INT,
+    Place VARCHAR(255),
+    Date DATE,
+    FOREIGN KEY (UserID) REFERENCES "User" (UserID)
+);
+
+CREATE TABLE Likes (
+    PostID INT,
+    UserID INT,
+    Timestamp DATE,
+    PRIMARY KEY (PostID, UserID),
+    FOREIGN KEY (PostID) REFERENCES Post (PostID),
+    FOREIGN KEY (UserID) REFERENCES "User" (UserID)
+);
+
+CREATE TABLE VideoPost (
+    PostID INT PRIMARY KEY,
+    VideoURL VARCHAR(255) NOT NULL,
+    FOREIGN KEY (PostID) REFERENCES Post (PostID)
+);
+
+CREATE TABLE ImagePost (
+    PostID INT PRIMARY KEY,
+    Filter VARCHAR(255),
+    ImageURL VARCHAR(255),
+    FOREIGN KEY (PostID) REFERENCES Post (PostID)
+);
+
+CREATE TABLE TextPost (
+    PostID INT PRIMARY KEY,
+    TextContent VARCHAR(255),
+    FOREIGN KEY (PostID) REFERENCES Post (PostID)
+);
+
+CREATE TABLE Tags (
+    TagName VARCHAR(255),
+    PostID INT,
+    PRIMARY KEY (TagName, PostID),
+    FOREIGN KEY (PostID) REFERENCES Post (PostID)
+);

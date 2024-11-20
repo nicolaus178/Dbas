@@ -1,0 +1,84 @@
+--Insert data into the Users table
+INSERT INTO Users (UserID, FullName)
+VALUES (1, 'Alice Johnson');
+
+INSERT INTO Users (UserID, FullName)
+VALUES (2, 'Jonas Karlsson');
+
+INSERT INTO Users (UserID, FullName)
+VALUES (3, 'Bertil Bertsson');
+
+INSERT INTO Users (UserID, FullName)
+VALUES (4, 'Donald Trump');
+
+INSERT INTO Users (UserID, FullName)
+VALUES (5, 'Sara Nilsson');
+
+
+-- Insert data into the Friends table
+INSERT INTO friends (userid1, userid2) VALUES (4, 3);
+INSERT INTO friends (userid1, userid2) VALUES (3, 4);  
+
+INSERT INTO friends (userid1, userid2) VALUES (4, 5);
+INSERT INTO friends (userid1, userid2) VALUES (5, 4);
+
+INSERT INTO friends (userid1, userid2) VALUES (4, 6);
+INSERT INTO friends (userid1, userid2) VALUES (6, 4);
+
+INSERT INTO friends (userid1, userid2) VALUES (5, 6);
+INSERT INTO friends (userid1, userid2) VALUES (6, 5);
+
+INSERT INTO friends (userid1, userid2) VALUES (1, 2);
+INSERT INTO friends (userid1, userid2) VALUES (2, 1);
+
+-- Insert data into the events and attendees table
+INSERT INTO events (eventid, title, userid, place, startdate, enddate) 
+VALUES (1, 'Greatest party of all time', 4, '1600 Pennsylvania Avenue NW', '2025-01-06', '2029-01-15');
+
+INSERT INTO attendees (eventid, userid) VALUES (1, 4);
+INSERT INTO attendees (eventid, userid) VALUES (1, 3);
+INSERT INTO attendees (eventid, userid) VALUES (1, 5);
+INSERT INTO attendees (eventid, userid) VALUES (1, 6);
+
+-- Insert data into the post, likes and tags table
+-- imagepost
+INSERT INTO post  (postid, title, userid, place, date) 
+VALUES (1, 'Kolla denna goda glass', 1, 'Mallorca',  '2024-05-30');
+INSERT INTO tags (postid, tagname) 
+VALUES (1, 'Social');
+INSERT INTO imagepost (postid, filter, imageurl) 
+VALUES (1, NULL, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3kW7Q_qsaDXwkirYy21Dc3Vk0ejofKxQOFQ&s');
+INSERT INTO likes (postid, userid, timestamp) VALUES (1, 1, '2024-09-20');
+INSERT INTO likes (postid, userid, timestamp) VALUES (1, 3, '2024-10-05');
+INSERT INTO likes (postid, userid, timestamp) VALUES (1, 4, '2024-09-23');
+
+-- textpost
+INSERT INTO post  (postid, title, userid, place, date) 
+VALUES (2, 'Bananer', 3,  'Södermalm ', '2024-08-14');
+INSERT INTO tags (postid, tagname) VALUES (2, 'Social');
+INSERT INTO tags (postid, tagname) VALUES (2, 'Question');
+INSERT INTO textpost (postid, textcontent) 
+VALUES (2, 'Vart ligger landet där man böjer bananerna?');
+INSERT INTO likes (postid, userid, timestamp) VALUES (2, 1, '2024-09-21');
+INSERT INTO likes (postid, userid, timestamp) VALUES (2, 2, '2024-10-01');
+INSERT INTO likes (postid, userid, timestamp) VALUES (2, 3, '2024-10-06');
+INSERT INTO likes (postid, userid, timestamp) VALUES (2, 4, '2024-09-23');
+INSERT INTO likes (postid, userid, timestamp) VALUES (2, 6, '2024-11-04');
+
+-- videopost
+INSERT INTO post  (postid, title, userid, place, date) 
+VALUES (3, 'MY FAVORITE SONG', 4,  'Mar-a-Lago', '2024-11-05');
+INSERT INTO tags (postid, tagname) VALUES (3, 'Social');
+INSERT INTO videopost (postid, videourl) 
+VALUES (3, 'https://www.youtube.com/watch?v=RN8Li7kYNnw');
+INSERT INTO likes (postid, userid, timestamp) VALUES (3, 2, '2024-11-06');
+INSERT INTO likes (postid, userid, timestamp) VALUES (3, 3, '2024-11-07');
+INSERT INTO likes (postid, userid, timestamp) VALUES (3, 4, '2024-11-05');
+
+-- Insert data into the subscription table
+INSERT INTO subscription (subscriptionid, userid, dateofpayment, paymentmethod) 
+VALUES (1, 1, '2024-11-01', 'Card'), (2, 2, '2024-11-02', 'Bitcoin'), (3, 3, '2024-11-03', 'Klarna'),  (4, 4, '2024-11-04', 'Swish'), (5, 5, '2024-11-05', 'Card'),  (6, 6, '2024-11-06', 'Bitcoin'); 
+
+
+
+
