@@ -35,3 +35,27 @@ FROM
   RankedPosts
 WHERE 
   rank <= 5;  -- Return only the top 5 posts
+
+
+
+
+4.
+SELECT 
+  u.name,  -- User's name
+  CASE 
+    WHEN COUNT(f.FriendID) > 0 THEN true  -- If the user has at least one friend
+    ELSE false  -- If the user has no friends
+  END AS has_friend,  
+  s.date AS registration_date  -- Registration date from the Subscription table
+FROM 
+  Users u
+LEFT JOIN 
+  Friend f ON u.UserID = f.UserID OR u.UserID = f.FriendID  -- Check for friendships
+JOIN 
+  Subscription s ON u.UserID = s.UserID  -- Join with Subscription to get registration date
+WHERE 
+  EXTRACT(MONTH FROM s.date) = 1  -- Filter for January registrations
+GROUP BY 
+  u.UserID, u.name, s.date  -- Grouping by UserID, name, and registration date
+ORDER BY 
+  u.name;  -- Sorting by name alphabetically
