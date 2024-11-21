@@ -135,3 +135,45 @@ SELECT
     name, user_id, friend_id
 FROM 
     FriendChain;
+
+
+P+
+
+WITH MarchPosts AS (
+    -- Get posts created in March along with their authors
+    SELECT 
+        u.name AS author_name,
+        p.PostID
+    FROM 
+        Post p
+    JOIN 
+        Users u
+    ON 
+        p.UserID = u.UserID
+    WHERE 
+        EXTRACT(MONTH FROM p.date) = 3  -- Filter for March
+        AND EXTRACT(YEAR FROM p.date) = EXTRACT(YEAR FROM CURRENT_DATE)  -- Ensure it's the current year
+),
+MarchLikes AS (
+    -- Count likes for each post created in March
+    SELECT 
+        mp.author_name,
+        SUM(CASE WHEN l.PostID IS NOT NULL THEN 1 ELSE 0 END) AS total_likes
+    FROM 
+        MarchPosts mp
+    LEFT JOIN 
+        Likes l
+    ON 
+        mp.PostID = l.PostID
+    GROUP BY 
+        mp.author_name
+)
+-- Determine if total likes for each user is ≥ 50
+SELECT 
+    ml.author_name AS name,
+    CASE 
+        WHEN ml.total_likes >= 50 THEN TRUE
+        ELSE FALSE
+    END AS received_likes
+FROM 
+    MarchLikes ml;
