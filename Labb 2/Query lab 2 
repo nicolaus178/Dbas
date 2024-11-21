@@ -74,9 +74,6 @@ LEFT JOIN NumberOfPosts p ON s.UserID = p.UserID AND s.WeekNumber = p.WeekNumber
 GROUP BY w.WeekNumber
 ORDER BY w.WeekNumber;
 
-
-
-
 4.
 SELECT 
   u.name,  -- User's name
@@ -97,3 +94,44 @@ GROUP BY
   u.UserID, u.name, s.date  -- Grouping by UserID, name, and registration date
 ORDER BY 
   u.name;  -- Sorting by name alphabetically
+
+5. 
+WITH RECURSIVE FriendChain AS (
+    -- Base case: Start with Anas (User ID 20)
+    SELECT 
+        u.name AS name,
+        u.UserID AS user_id,
+        f.FriendID AS friend_id
+    FROM 
+        Users u
+    JOIN 
+        Friend f
+    ON 
+        u.UserID = f.UserID
+    WHERE 
+        u.UserID = 20  -- Start with Anas
+    
+    UNION ALL
+    
+    -- Recursive case: Continue with the next friend
+    SELECT 
+        u2.name AS name,
+        f.UserID AS user_id,
+        f.FriendID AS friend_id
+    FROM 
+        FriendChain fc
+    JOIN 
+        Friend f
+    ON 
+        fc.friend_id = f.UserID
+    JOIN 
+        Users u2
+    ON 
+        f.UserID = u2.UserID
+    WHERE 
+        f.FriendID != fc.user_id  -- Prevent backtracking
+)
+SELECT 
+    name, user_id, friend_id
+FROM 
+    FriendChain;
