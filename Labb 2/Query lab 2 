@@ -104,7 +104,7 @@ WITH RECURSIVE FriendChain AS (
         f.FriendID AS friend_id
     FROM 
         Users u
-    JOIN 
+    LEFT JOIN 
         Friend f
     ON 
         u.UserID = f.UserID
@@ -113,29 +113,30 @@ WITH RECURSIVE FriendChain AS (
     
     UNION ALL
     
-    -- Recursive case: Continue with the next friend
+    -- Recursive case: Join with Users first to get the friend's name
     SELECT 
         u2.name AS name,
-        f.UserID AS user_id,
+        u2.UserID AS user_id,
         f.FriendID AS friend_id
     FROM 
         FriendChain fc
     JOIN 
-        Friend f
-    ON 
-        fc.friend_id = f.UserID
-    JOIN 
         Users u2
     ON 
-        f.UserID = u2.UserID
-    WHERE 
-        f.FriendID != fc.user_id  -- Prevent backtracking
+        u2.UserID = fc.friend_id
+    LEFT JOIN 
+        Friend f
+    ON 
+        u2.UserID = f.UserID
 )
 SELECT 
-    name, user_id, friend_id
+    name, 
+    user_id, 
+    friend_id
 FROM 
-    FriendChain;
-
+    FriendChain
+ORDER BY 
+    user_id;
 
 P+
 
