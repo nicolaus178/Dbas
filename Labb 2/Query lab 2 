@@ -2,7 +2,7 @@
 1.
 -- Display posts and tags
 SELECT Post.Title,                                  -- Select the post title
-       STRING_AGG(PostTag.Tag, ', ') AS Tags         -- Concatenate tags associated with each post, separated by commas
+       STRING_AGG(PostTag.Tag, ', ') AS Tags         -- Combines tags associated with each post, separated by commas
 FROM Post
 LEFT JOIN PostTag ON Post.PostID = PostTag.PostID    -- Perform a LEFT JOIN to include all posts, even those without tags
 GROUP BY Post.Title;                                 -- Group by post title to ensure each post is listed once, with its tags
