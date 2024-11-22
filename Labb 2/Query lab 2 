@@ -97,7 +97,7 @@ SELECT
   END AS has_friend,  
   s.date AS registration_date  -- The user's registration date from the Subscription table
 FROM 
-  Users u
+  Users u 
 LEFT JOIN 
   Friend f ON u.UserID = f.UserID OR u.UserID = f.FriendID  -- Check both directions for friendships
 JOIN 
