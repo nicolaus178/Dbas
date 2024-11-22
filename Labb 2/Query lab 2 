@@ -72,7 +72,7 @@ NumberOfPosts AS (
 ),
 -- CTE to generate all weeks in a year
 AllWeeks AS (
-    SELECT generate_series(1, 52) AS WeekNumber  -- Generate a series of numbers for all 52 weeks of the year
+    SELECT generate_series(1, 30) AS WeekNumber  -- Generate a series of numbers for all 52 weeks of the year
 )
 SELECT
     w.WeekNumber,
