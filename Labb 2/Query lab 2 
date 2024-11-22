@@ -9,6 +9,7 @@ GROUP BY Post.Title;
 
 
 2.
+
 WITH RankedPosts AS (
   SELECT 
     p.PostID,                      -- Post ID
@@ -80,7 +81,7 @@ SELECT
 FROM AllWeeks w
 LEFT JOIN SubscriptionsWithWeek s ON s.WeekNumber = w.WeekNumber
 LEFT JOIN FirstSubscriptions f ON s.UserID = f.UserID
-LEFT JOIN NumberOfPosts p ON p.WeekNumber = w.WeekNumber -- Only match on WeekNumber
+LEFT JOIN NumberOfPosts p ON    p.WeekNumber = w.WeekNumber -- Only match on WeekNumber
 GROUP BY w.WeekNumber, p.NumberOfPosts
 ORDER BY w.WeekNumber;
 
