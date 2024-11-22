@@ -1,11 +1,11 @@
 
-1. 
---Display posts and tags
-SELECT Post.Title,
-       STRING_AGG(PostTag.Tag, ', ') AS Tags
+1.
+-- Display posts and tags
+SELECT Post.Title,                                  -- Select the post title
+       STRING_AGG(PostTag.Tag, ', ') AS Tags         -- Concatenate tags associated with each post, separated by commas
 FROM Post
-LEFT JOIN PostTag ON Post.PostID = PostTag.PostID
-GROUP BY Post.Title;
+LEFT JOIN PostTag ON Post.PostID = PostTag.PostID    -- Perform a LEFT JOIN to include all posts, even those without tags
+GROUP BY Post.Title;                                 -- Group by post title to ensure each post is listed once, with its tags
 
 
 2.
@@ -13,27 +13,28 @@ WITH RankedPosts AS (
   SELECT 
     p.PostID,                      -- Post ID
     p.Title,                        -- Post Title
-    COUNT(l.PostID) AS likes_count, -- Number of Likes
-    RANK() OVER (ORDER BY COUNT(l.PostID) DESC) AS rank -- Ranking posts by likes count
+    COUNT(l.PostID) AS likes_count, -- Count the number of likes per post
+    RANK() OVER (ORDER BY COUNT(l.PostID) DESC) AS rank -- Rank posts by their like count, in descending order
   FROM 
     Post p
   JOIN 
-    PostTag pt ON p.PostID = pt.PostID  -- Join to filter posts by tag
+    PostTag pt ON p.PostID = pt.PostID  -- Join to filter posts by '#leadership' tag
   LEFT JOIN 
-    Likes l ON p.PostID = l.PostID     -- Left join to count likes
+    Likes l ON p.PostID = l.PostID     -- Left join to count the likes for each post
   WHERE 
-    pt.Tag = '#leadership'  -- Filter for the '#leadership' tag
+    pt.Tag = '#leadership'  -- Filter only posts with the '#leadership' tag
   GROUP BY 
-    p.PostID, p.Title  -- Group by PostID and Title
+    p.PostID, p.Title  -- Group by post ID and title to calculate the like count for each post
 )
 SELECT 
-  PostID,
-  Title,
-  rank
+  PostID,                           -- Select PostID
+  Title,                             -- Select Title of the post
+  rank                               -- Select the rank of the post based on like count
 FROM 
   RankedPosts
 WHERE 
-  rank <= 5;  -- Return only the top 5 posts
+  rank <= 5;  -- Return only the top 5 posts based on the like count
+
 
 3.
 -- Count subscriptions in the given period and separate first-time and returning users
@@ -42,14 +43,14 @@ WITH SubscriptionsWithWeek AS (
     SELECT 
         UserID,
         Date,
-        DATE_PART('week', Date) AS WeekNumber
+        DATE_PART('week', Date) AS WeekNumber  -- Extract the week number from subscription date
     FROM Subscription
 ),
 -- CTE to get the first subscription date for each user
 FirstSubscriptions AS (
     SELECT 
         UserID, 
-        MIN(Date) AS FirstSubscriptionDate
+        MIN(Date) AS FirstSubscriptionDate  -- Find the first subscription date for each user
     FROM Subscription
     GROUP BY UserID
 ),
@@ -57,32 +58,32 @@ FirstSubscriptions AS (
 PostsWithWeek AS (
     SELECT
         PostID,
-        DATE_PART('week', Date) AS WeekNumber
+        DATE_PART('week', Date) AS WeekNumber  -- Extract the week number for each post date
     FROM Post
 ),
 -- CTE to count the total number of posts per week
 NumberOfPosts AS (
     SELECT
         WeekNumber,
-        COUNT(PostID) AS NumberOfPosts
+        COUNT(PostID) AS NumberOfPosts  -- Count how many posts were made in each week
     FROM PostsWithWeek
     GROUP BY WeekNumber
 ),
 -- CTE to generate all weeks in a year
 AllWeeks AS (
-    SELECT generate_series(1, 52) AS WeekNumber
+    SELECT generate_series(1, 52) AS WeekNumber  -- Generate a series of numbers for all 52 weeks of the year
 )
 SELECT
     w.WeekNumber,
-    SUM(CASE WHEN s.Date = f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS new_customers,
-    SUM(CASE WHEN s.Date != f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS kept_customers,
-    COALESCE(p.NumberOfPosts, 0) AS Activity
+    SUM(CASE WHEN s.Date = f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS new_customers,  -- Count new customers (first-time subscriptions)
+    SUM(CASE WHEN s.Date != f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS kept_customers, -- Count returning customers (not first-time)
+    COALESCE(p.NumberOfPosts, 0) AS Activity  -- Include the number of posts per week (0 if no posts in that week)
 FROM AllWeeks w
-LEFT JOIN SubscriptionsWithWeek s ON s.WeekNumber = w.WeekNumber
-LEFT JOIN FirstSubscriptions f ON s.UserID = f.UserID
-LEFT JOIN NumberOfPosts p ON p.WeekNumber = w.WeekNumber -- Only match on WeekNumber
-GROUP BY w.WeekNumber, p.NumberOfPosts
-ORDER BY w.WeekNumber;
+LEFT JOIN SubscriptionsWithWeek s ON s.WeekNumber = w.WeekNumber  -- Join on week number to get subscription data
+LEFT JOIN FirstSubscriptions f ON s.UserID = f.UserID  -- Join on UserID to get the first subscription date for each user
+LEFT JOIN NumberOfPosts p ON p.WeekNumber = w.WeekNumber  -- Join on week number to get the post activity for each week
+GROUP BY w.WeekNumber, p.NumberOfPosts  -- Group by week number and number of posts to aggregate data
+ORDER BY w.WeekNumber;  -- Order the result by week number (ascending)
 
 
 
@@ -90,22 +91,23 @@ ORDER BY w.WeekNumber;
 SELECT 
   u.name,  -- User's name
   CASE 
-    WHEN COUNT(f.FriendID) > 0 THEN true  -- If the user has at least one friend
-    ELSE false  -- If the user has no friends
+    WHEN COUNT(f.FriendID) > 0 THEN true  -- If the user has at least one friend, return true
+    ELSE false  -- If the user has no friends, return false
   END AS has_friend,  
-  s.date AS registration_date  -- Registration date from the Subscription table
+  s.date AS registration_date  -- The user's registration date from the Subscription table
 FROM 
   Users u
 LEFT JOIN 
-  Friend f ON u.UserID = f.UserID OR u.UserID = f.FriendID  -- Check for friendships
+  Friend f ON u.UserID = f.UserID OR u.UserID = f.FriendID  -- Check both directions for friendships
 JOIN 
-  Subscription s ON u.UserID = s.UserID  -- Join with Subscription to get registration date
+  Subscription s ON u.UserID = s.UserID  -- Join Subscription to get the user's registration date
 WHERE 
-  EXTRACT(MONTH FROM s.date) = 1  -- Filter for January registrations
+  EXTRACT(MONTH FROM s.date) = 1  -- Filter only those users who registered in January (Month = 1)
 GROUP BY 
-  u.UserID, u.name, s.date  -- Grouping by UserID, name, and registration date
+  u.UserID, u.name, s.date  -- Group by UserID, name, and registration date to avoid duplicates
 ORDER BY 
-  u.name;  -- Sorting by name alphabetically
+  u.name;  -- Sort the result alphabetically by the user's name
+
 
 5. 
 WITH RECURSIVE FriendChain AS (
@@ -113,15 +115,15 @@ WITH RECURSIVE FriendChain AS (
     SELECT 
         u.name AS name,
         u.UserID AS user_id,
-        f.FriendID AS friend_id
+        f.FriendID AS friend_id  -- Select the friend relationships
     FROM 
         Users u
     LEFT JOIN 
         Friend f
     ON 
-        u.UserID = f.UserID
+        u.UserID = f.UserID  -- Join the Friend table to get friends
     WHERE 
-        u.UserID = 20  -- Start with Anas
+        u.UserID = 20  -- Start with Anas' user ID
     
     UNION ALL
     
@@ -129,64 +131,64 @@ WITH RECURSIVE FriendChain AS (
     SELECT 
         u2.name AS name,
         u2.UserID AS user_id,
-        f.FriendID AS friend_id
+        f.FriendID AS friend_id  -- Continue expanding the chain of friends
     FROM 
         FriendChain fc
     JOIN 
         Users u2
     ON 
-        u2.UserID = fc.friend_id
+        u2.UserID = fc.friend_id  -- Join the user table to get the name of each friend
     LEFT JOIN 
         Friend f
     ON 
-        u2.UserID = f.UserID
+        u2.UserID = f.UserID  -- Join with Friend again to find their friends
 )
 SELECT 
     name, 
     user_id, 
-    friend_id
+    friend_id  -- Select the name, user_id, and friend_id from the recursive friend chain
 FROM 
     FriendChain
 ORDER BY 
-    user_id;
+    user_id;  -- Sort the result by user_id
 
 P+
 
 WITH MarchPosts AS (
     -- Get posts created in March along with their authors
     SELECT 
-        u.name AS author_name,
-        p.PostID
+        u.name AS author_name,  -- Author's name
+        p.PostID  -- PostID
     FROM 
         Post p
     JOIN 
         Users u
     ON 
-        p.UserID = u.UserID
+        p.UserID = u.UserID  -- Join the User table to get the post author
     WHERE 
-        EXTRACT(MONTH FROM p.date) = 3  -- Filter for March
-        AND EXTRACT(YEAR FROM p.date) = EXTRACT(YEAR FROM CURRENT_DATE)  -- Ensure it's the current year
+        EXTRACT(MONTH FROM p.date) = 3  -- Filter for posts created in March
+        AND EXTRACT(YEAR FROM p.date) = EXTRACT(YEAR FROM CURRENT_DATE)  -- Ensure the posts are from the current year
 ),
 MarchLikes AS (
     -- Count likes for each post created in March
     SELECT 
-        mp.author_name,
-        SUM(CASE WHEN l.PostID IS NOT NULL THEN 1 ELSE 0 END) AS total_likes
+        mp.author_name,  -- Author's name
+        SUM(CASE WHEN l.PostID IS NOT NULL THEN 1 ELSE 0 END) AS total_likes  -- Count likes for each post
     FROM 
         MarchPosts mp
     LEFT JOIN 
         Likes l
     ON 
-        mp.PostID = l.PostID
+        mp.PostID = l.PostID  -- Join Likes table to count how many likes each post received
     GROUP BY 
-        mp.author_name
+        mp.author_name  -- Group by author name to aggregate likes
 )
 -- Determine if total likes for each user is ≥ 50
 SELECT 
-    ml.author_name AS name,
+    ml.author_name AS name,  -- Select the author's name
     CASE 
-        WHEN ml.total_likes >= 50 THEN TRUE
-        ELSE FALSE
-    END AS received_likes
+        WHEN ml.total_likes >= 50 THEN TRUE  -- If the user received 50 or more likes, return TRUE
+        ELSE FALSE  -- Otherwise, return FALSE
+    END AS received_likes  -- Return whether the author received enough likes
 FROM 
-    MarchLikes ml;
+    MarchLikes ml;  -- Use the MarchLikes CTE to determine the total likes and check if the threshold is met
