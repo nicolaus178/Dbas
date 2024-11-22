@@ -37,6 +37,7 @@ WHERE
 
 3.
 -- Count subscriptions in the given period and separate first-time and returning users
+-- CTE to get the week number for each subscription date
 WITH SubscriptionsWithWeek AS (
     SELECT 
         UserID,
@@ -44,6 +45,7 @@ WITH SubscriptionsWithWeek AS (
         DATE_PART('week', Date) AS WeekNumber
     FROM Subscription
 ),
+-- CTE to get the first subscription date for each user
 FirstSubscriptions AS (
     SELECT 
         UserID, 
@@ -51,28 +53,38 @@ FirstSubscriptions AS (
     FROM Subscription
     GROUP BY UserID
 ),
+-- CTE to list each post along with its week number
+PostsWithWeek AS (
+    SELECT
+        PostID,
+        DATE_PART('week', Date) AS WeekNumber
+    FROM Post
+),
+-- CTE to count the total number of posts per week
 NumberOfPosts AS (
     SELECT
-        UserID,
-        DATE_PART('week', Date) AS WeekNumber,
+        WeekNumber,
         COUNT(PostID) AS NumberOfPosts
-    FROM Post
-    GROUP BY UserID, WeekNumber
+    FROM PostsWithWeek
+    GROUP BY WeekNumber
 ),
+-- CTE to generate all weeks in a year
 AllWeeks AS (
-    SELECT generate_series(1, 52) AS WeekNumber  -- assuming a year of 52 weeks
+    SELECT generate_series(1, 52) AS WeekNumber
 )
 SELECT
     w.WeekNumber,
-    SUM(CASE WHEN s.Date = f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS new_costumers,
-    SUM(CASE WHEN s.Date != f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS kept_costumers,
-    COALESCE(SUM(p.NumberOfPosts), 0) AS Activity
-FROM AllWeeks w  -- Use AllWeeks as the base table for weeks
+    SUM(CASE WHEN s.Date = f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS new_customers,
+    SUM(CASE WHEN s.Date != f.FirstSubscriptionDate THEN 1 ELSE 0 END) AS kept_customers,
+    COALESCE(p.NumberOfPosts, 0) AS Activity
+FROM AllWeeks w
 LEFT JOIN SubscriptionsWithWeek s ON s.WeekNumber = w.WeekNumber
 LEFT JOIN FirstSubscriptions f ON s.UserID = f.UserID
-LEFT JOIN NumberOfPosts p ON s.UserID = p.UserID AND s.WeekNumber = p.WeekNumber
-GROUP BY w.WeekNumber
+LEFT JOIN NumberOfPosts p ON p.WeekNumber = w.WeekNumber -- Only match on WeekNumber
+GROUP BY w.WeekNumber, p.NumberOfPosts
 ORDER BY w.WeekNumber;
+
+
 
 4.
 SELECT 
