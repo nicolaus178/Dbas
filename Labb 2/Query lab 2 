@@ -70,9 +70,9 @@ NumberOfPosts AS (
     FROM PostsWithWeek
     GROUP BY WeekNumber
 ),
--- CTE to generate all weeks in a year
+-- CTE to generate the first 30 weeks in a year
 AllWeeks AS (
-    SELECT generate_series(1, 52) AS WeekNumber  -- Generate a series of numbers for all 52 weeks of the year
+    SELECT generate_series(1, 30) AS WeekNumber  -- Generate a series of numbers for the first 30 weeks
 )
 SELECT
     w.WeekNumber,
