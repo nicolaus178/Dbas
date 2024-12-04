@@ -65,3 +65,32 @@ HAVING
 ORDER BY 
 -- Order the results by the number of speakers, in descending order
     numberspeaker DESC;
+
+Task 3
+WITH BorderCountryGdp AS(
+    SELECT
+        c.Code AS country1,                      -- Show country 1 code
+        e1.GDP AS gdp1,                  -- Show GDP for country 1
+        b.Country2 AS country2,                   -- Show the code of the bordering country (Country2)
+        e2.GDP AS gdp2                    -- Show GDP for country 2
+    FROM
+        Country c
+    JOIN
+        borders b ON c.Code = b.Country1           -- Join with borders table on country 1
+    JOIN
+        economy e1 ON c.Code = e1.country         -- Join with economy table for country 1 GDP
+    JOIN
+        economy e2 ON b.Country2 = e2.country    -- Join with economy table for country 2 GDP
+    WHERE 
+        e1.gdp IS NOT NULL
+        AND e2.gdp IS NOT NULL
+)
+SELECT 
+    country1,
+    gdp1,
+    country2,
+    gdp2,
+    CAST((GREATEST(gdp1,gdp2) / LEAST(gdp1, gdp2) )AS BIGINT) AS ratio 
+FROM
+    BorderCountryGdp
+ORDER BY ratio DESC;
