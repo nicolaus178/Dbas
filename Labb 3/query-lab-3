@@ -1,4 +1,30 @@
 
-WITH NumberOfSpeakers AS (
-    SELECT 
-)
+
+Task 2
+SELECT 
+    -- Select the 'language' column from the 'spoken' table (s)
+    s.language,
+
+    -- Calculate the estimated number of speakers for each language
+    -- Multiply the country's population by the percentage (converted to a fraction) of people who speak the language
+    -- Sum this value across all countries for each language
+    -- CAST the result to BIGINT to ensure it is an integer
+    CAST(SUM(c.population * (s.percentage / 100.0)) AS BIGINT) AS numberspeaker
+FROM 
+    -- From the 'country' table (c) which contains country data, including population
+    country c
+JOIN 
+    -- Join with the 'spoken' table
+    spoken s 
+ON 
+-- Join condition: match the country code in 'country' table with the country code in 'spoken' table
+    c.code = s.country
+GROUP BY 
+-- Group the results by language 
+    s.language
+HAVING 
+-- Filter out languages with zero speakers
+    SUM(c.population * (s.percentage / 100.0)) > 0
+ORDER BY 
+-- Order the results by the number of speakers, in descending order
+    numberspeaker DESC;
