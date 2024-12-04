@@ -1,5 +1,12 @@
 1. When would a view be beneficial compared to regular queries? For what reasons?
+Istället för komplexa queries med stora databaser kan man spara dom som en view, kan användas för säkerhet, bara visa viss data. 
+
 2. What is stored in the database for non-materialised or materialised views
 respectively?
+I no materialised views sparas endast defintionen ingen data, den hämtas dynamiskt. I materialised sparas datan också som hämtas.
+
 3. Name one benefit of using materialised views over non-materialised ones
+I materialised kan data hämtas snabbt eftersom den sparas, i stora datasets är detta effektivt. Sparar på prestanda. 
+
 4. Name one benefit of using non-materialised views over materialised ones
+I non materialised är datan alltid i realtid, sparar på minne eftersom mindre måste sparas. 
