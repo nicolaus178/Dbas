@@ -1,3 +1,40 @@
+-- 1. Find the country with the fewest number of borders.
+WITH CombinedBorders AS (
+    SELECT
+        c.Name AS country_name,
+        b.Country2 AS border_country
+    FROM
+        Country c
+    JOIN
+        borders b ON c.Code = b.Country1
+    UNION
+    SELECT
+        c.Name AS country_name,
+        b.Country1 AS border_country
+    FROM
+        Country c
+    JOIN
+        borders b ON c.Code = b.Country2
+),
+BorderCounts AS (
+    SELECT
+        country_name,
+        COUNT(DISTINCT border_country) AS border_count
+    FROM
+        CombinedBorders
+    GROUP BY
+        country_name
+)
+SELECT
+    country_name,
+    border_count
+FROM
+    BorderCounts
+WHERE
+    border_count = (SELECT MIN(border_count) FROM BorderCounts)
+ORDER BY
+    country_name ASC;
+
 
 
 Task 2
