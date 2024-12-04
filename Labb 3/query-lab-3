@@ -95,6 +95,79 @@ FROM
     BorderCountryGdp
 ORDER BY ratio DESC;
 
+P+
+1.
+
+
+
+
+2.
+WITH RECURSIVE RiverSystem AS (
+    SELECT 
+        Name, 
+        Name AS MainRiver,
+        Name AS Branch,
+        ARRAY[Name]::VARCHAR[] AS RiverChain
+    FROM River
+    WHERE Name IN ('Nile', 'Amazonas', 'Yangtze', 'Rhein', 'Donau', 'Mississippi')
+
+    UNION
+
+    SELECT 
+        rs.Name,
+        rs.MainRiver,
+        r.Name AS Branch,
+        rs.RiverChain || r.Name
+    FROM RiverSystem rs
+    JOIN River r ON rs.Branch = r.River
+), 
+
+BranchCounts AS (
+    SELECT 
+        MainRiver,
+        Branch,
+        array_length(RiverChain, 1) AS NumRivers,
+        RiverChain
+    FROM RiverSystem
+),
+
+LongestBranches AS (
+    SELECT 
+        MainRiver,
+        MAX(NumRivers) AS MaxRivers
+    FROM BranchCounts
+    GROUP BY MainRiver
+),
+
+RankedBranches AS (
+    SELECT 
+        bc.MainRiver,
+        array_to_string(bc.RiverChain, ' -> ') AS Path,
+        bc.NumRivers,
+        RANK() OVER (
+            ORDER BY bc.NumRivers ASC, 
+                     (SELECT SUM(r.Length) 
+                      FROM unnest(bc.RiverChain) AS chain_river
+                      JOIN River r ON r.Name = chain_river) DESC
+        ) AS Rank,
+        (
+            SELECT SUM(r.Length) 
+            FROM unnest(bc.RiverChain) AS chain_river
+            JOIN River r ON r.Name = chain_river
+        ) AS TotalLength
+    FROM BranchCounts bc
+    JOIN LongestBranches lb 
+        ON bc.MainRiver = lb.MainRiver AND bc.NumRivers = lb.MaxRivers
+)
+
+SELECT 
+    Rank,
+    Path,
+    NumRivers,
+    ROUND(TotalLength, 2) AS TotalLength
+FROM RankedBranches
+ORDER BY NumRivers ASC, TotalLength DESC;
+
 -- P+
 
 -- 1.
