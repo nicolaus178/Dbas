@@ -1,0 +1,5 @@
+1. When would a view be beneficial compared to regular queries? For what reasons?
+2. What is stored in the database for non-materialised or materialised views
+respectively?
+3. Name one benefit of using materialised views over non-materialised ones
+4. Name one benefit of using non-materialised views over materialised ones
