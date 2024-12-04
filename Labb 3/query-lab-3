@@ -1,0 +1,4 @@
+
+WITH NumberOfSpeakers AS (
+    SELECT 
+)
