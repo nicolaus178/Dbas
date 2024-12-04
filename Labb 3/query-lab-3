@@ -37,7 +37,7 @@ ORDER BY
 
 
 
-Task 2
+--Task 2
 SELECT 
     -- Select the 'language' column from the 'spoken' table (s)
     s.language,
@@ -66,7 +66,7 @@ ORDER BY
 -- Order the results by the number of speakers, in descending order
     numberspeaker DESC;
 
-Task 3
+--Task 3
 WITH BorderCountryGdp AS(
     SELECT
         c.Code AS country1,                      -- Show country 1 code
@@ -94,3 +94,68 @@ SELECT
 FROM
     BorderCountryGdp
 ORDER BY ratio DESC;
+
+-- P+
+
+-- 1.
+WITH RECURSIVE CombinedBorders AS (
+    SELECT
+        c.Code AS code,
+        c.Name AS name,
+        b.Country2 AS border_country
+    FROM
+        Country c
+    JOIN
+        borders b ON c.Code = b.Country1
+    UNION
+    SELECT
+        c.Code AS code,
+        c.Name AS name,
+        b.Country1 AS border_country
+    FROM
+        Country c
+    JOIN
+        borders b ON c.Code = b.Country2
+),
+SwedenBordersFiveSteps AS (
+    -- Base case: Find Sweden's immediate borders
+    SELECT
+        code,
+        name,
+        0 AS steps
+    FROM
+        CombinedBorders
+    WHERE
+        code = 'S'
+    UNION ALL
+    -- Recursive case: Find the next set of borders
+    SELECT
+        cb.code,
+        cb.name,
+        sbfs.steps + 1
+    FROM
+        SwedenBordersFiveSteps sbfs
+    JOIN
+        CombinedBorders cb ON sbfs.code = cb.border_country
+    WHERE
+        sbfs.steps < 5
+), MinSteps AS (
+    SELECT
+        code,
+        name,
+        MIN(steps) AS min_steps
+    FROM
+        SwedenBordersFiveSteps
+    GROUP BY
+        code, name
+)
+SELECT
+    code,
+    name,
+    min_steps AS steps
+FROM
+    MinSteps
+WHERE
+    code != 'S'
+ORDER BY
+    steps, code, name;
