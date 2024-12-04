@@ -1,15 +1,14 @@
 
-1.
+-- 1.
 -- Display posts and tags
 SELECT Post.Title,                                  -- Select the post title
        STRING_AGG(PostTag.Tag, ', ') AS Tags         -- Combines tags associated with each post, separated by commas
 FROM Post
 LEFT JOIN PostTag ON Post.PostID = PostTag.PostID    -- Perform a LEFT JOIN to include all posts, even those without tags
-GROUP BY Post.Title;                                 -- Group by post title to ensure each post is listed once, with its tags
+GROUP BY Post.PostID                                 -- Group by post title to ensure each post is listed once, with its tags
+ORDER BY Post.Title;                                -- Order the results by post ID for consistency
 
-
-2.
-
+-- 2.
 WITH RankedPosts AS (
   SELECT 
     p.PostID,                      -- Post ID
@@ -37,7 +36,7 @@ WHERE
   rank <= 5;  -- Return only the top 5 posts based on the like count
 
 
-3.
+-- 3.
 -- Count subscriptions in the given period and separate first-time and returning users
 -- CTE to get the week number for each subscription date
 WITH SubscriptionsWithWeek AS (
@@ -83,12 +82,12 @@ FROM AllWeeks w
 LEFT JOIN SubscriptionsWithWeek s ON s.WeekNumber = w.WeekNumber  -- Join on week number to get subscription data
 LEFT JOIN FirstSubscriptions f ON s.UserID = f.UserID  -- Join on UserID to get the first subscription date for each user
 LEFT JOIN NumberOfPosts p ON p.WeekNumber = w.WeekNumber  -- Join on week number to get the post activity for each week
-GROUP BY w.WeekNumber, p.NumberOfPosts  -- Group by week number and number of posts to aggregate data
+GROUP BY w.WeekNumber  -- Group by week number and number of posts to aggregate data
 ORDER BY w.WeekNumber;  -- Order the result by week number (ascending)
 
 
 
-4.
+-- 4.
 SELECT 
   u.name,  -- User's name
   CASE 
@@ -110,7 +109,7 @@ ORDER BY
   u.name;  -- Sort the result alphabetically by the user's name
 
 
-5. 
+-- 5. 
 WITH RECURSIVE FriendChain AS (
     -- Base case: Start with Anas (User ID 20)
     SELECT 
@@ -153,7 +152,7 @@ FROM
 ORDER BY 
     user_id;  -- Sort the result by user_id
 
-P+
+-- P+
 
 WITH MarchPosts AS (
     -- Get posts created in March along with their authors
