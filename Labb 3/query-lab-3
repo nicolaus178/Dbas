@@ -204,26 +204,14 @@ LongestBranches AS (
     GROUP BY MainRiver
 ),
 
--- Rank branch chains based on number of rivers and total length
 RankedBranches AS (
     SELECT 
         bc.MainRiver,
-        array_to_string(bc.RiverChain, ' -> ') AS Path,  -- Convert river chain to readable string
+        array_to_string(bc.RiverChain, ' -> ') AS Path,
         bc.NumRivers,
-        
-        -- Ranking calculation:
-        -- 1. Primary sort by number of rivers (ascending)
-        -- 2. Secondary sort by total length of river chain (descending)
-        RANK() OVER (
-            ORDER BY bc.NumRivers ASC, 
-                     (SELECT SUM(r.Length) 
-                      FROM unnest(bc.RiverChain) AS chain_river
-                      JOIN River r ON r.Name = chain_river) DESC
-        ) AS Rank,
-        
-        -- Calculate total length of the river chain
+        RANK() OVER (ORDER BY bc.NumRivers ASC) AS Rank,
         (
-            SELECT SUM(r.Length) 
+            SELECT SUM(r.Length)
             FROM unnest(bc.RiverChain) AS chain_river
             JOIN River r ON r.Name = chain_river
         ) AS TotalLength
@@ -231,12 +219,10 @@ RankedBranches AS (
     JOIN LongestBranches lb 
         ON bc.MainRiver = lb.MainRiver AND bc.NumRivers = lb.MaxRivers
 )
-
--- Final selection and output
 SELECT 
-    Rank,                  -- Ranking of river chains
-    Path,                  -- Readable path of river connections
-    NumRivers,             -- Number of rivers in the chain
-    ROUND(TotalLength, 2) AS TotalLength  -- Total length rounded to 2 decimal places
+    Rank,
+    Path,
+    NumRivers,
+    ROUND(TotalLength, 2) AS TotalLength
 FROM RankedBranches
-ORDER BY NumRivers ASC, TotalLength DESC;  -- Sort by number of rivers, then by total length
+ORDER BY NumRivers ASC, TotalLength DESC;
