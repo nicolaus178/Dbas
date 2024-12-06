@@ -69,16 +69,14 @@ ORDER BY
 --Task 3
 WITH BorderCountryGdp AS(
     SELECT
-        c.Code AS country1,                      -- Show country 1 code
+        b.Country1 AS country1,                      -- Show country 1 code
         e1.GDP AS gdp1,                  -- Show GDP for country 1
         b.Country2 AS country2,                   -- Show the code of the bordering country (Country2)
         e2.GDP AS gdp2                    -- Show GDP for country 2
     FROM
-        Country c
+    borders b
     JOIN
-        borders b ON c.Code = b.Country1           -- Join with borders table on country 1
-    JOIN
-        economy e1 ON c.Code = e1.country         -- Join with economy table for country 1 GDP
+        economy e1 ON b.Country1 = e1.country         -- Join with economy table for country 1 GDP
     JOIN
         economy e2 ON b.Country2 = e2.country    -- Join with economy table for country 2 GDP
     WHERE 
@@ -160,6 +158,7 @@ WHERE
 ORDER BY
     steps, code, name;
 
+-- 2
 -- Recursive Common Table Expression (CTE) to trace river branch connections
 WITH RECURSIVE RiverSystem AS (
     -- Initial selection of main rivers (base case for recursion)
