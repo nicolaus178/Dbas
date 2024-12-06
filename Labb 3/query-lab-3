@@ -1,39 +1,46 @@
 -- 1. Find the country with the fewest number of borders.
 WITH CombinedBorders AS (
+    -- Select country names and their neighboring countries (Country1 as the reference country).
     SELECT
-        c.Name AS country_name,
-        b.Country2 AS border_country
+        c.Name AS country_name,      -- Name of the country
+        b.Country2 AS border_country -- The neighboring country
     FROM
-        Country c
+        Country c                    -- Table containing country information
     JOIN
-        borders b ON c.Code = b.Country1
-    UNION
+        borders b ON c.Code = b.Country1 -- Join Country table with borders on Country1
+    
+    UNION -- Combine results to include the reverse direction of borders.
+
+    -- Select country names and their neighboring countries (Country2 as the reference country).
     SELECT
-        c.Name AS country_name,
-        b.Country1 AS border_country
+        c.Name AS country_name,      -- Name of the country
+        b.Country1 AS border_country -- The neighboring country
     FROM
-        Country c
+        Country c                    -- Table containing country information
     JOIN
-        borders b ON c.Code = b.Country2
+        borders b ON c.Code = b.Country2 -- Join Country table with borders on Country2
 ),
 BorderCounts AS (
     SELECT
-        country_name,
-        COUNT(DISTINCT border_country) AS border_count
+        country_name,                    -- Name of the country
+        COUNT(DISTINCT border_country) AS border_count -- Count of unique neighbors
     FROM
-        CombinedBorders
+        CombinedBorders                  -- Use the CombinedBorders CTE
     GROUP BY
-        country_name
+        country_name                     -- Group by country name to calculate the counts
 )
 SELECT
-    country_name,
-    border_count
+    country_name,                        -- Name of the country
+    border_count                         -- Number of borders for the country
 FROM
-    BorderCounts
+    BorderCounts                         -- Use the BorderCounts CTE
 WHERE
-    border_count = (SELECT MIN(border_count) FROM BorderCounts)
+    border_count = (                     -- Filter for the minimum border count
+        SELECT MIN(border_count)         -- Find the smallest border count in the dataset
+        FROM BorderCounts
+    )
 ORDER BY
-    country_name ASC;
+    country_name ASC;                    -- Order the results alphabetically by country name
 
 
 
@@ -100,66 +107,67 @@ ORDER BY ratio DESC;
 -- 1.
 WITH RECURSIVE CombinedBorders AS (
     SELECT
-        c.Code AS code,
-        c.Name AS name,
-        b.Country2 AS border_country
+        c.Code AS code,                -- Country code
+        c.Name AS name,                -- Country name
+        b.Country2 AS border_country   -- Neighboring country (Country2)
     FROM
         Country c
     JOIN
-        borders b ON c.Code = b.Country1
+        borders b ON c.Code = b.Country1 -- Join to find neighbors of Country1
     UNION
     SELECT
-        c.Code AS code,
-        c.Name AS name,
-        b.Country1 AS border_country
+        c.Code AS code,                -- Country code
+        c.Name AS name,                -- Country name
+        b.Country1 AS border_country   -- Neighboring country (Country1)
     FROM
         Country c
     JOIN
-        borders b ON c.Code = b.Country2
+        borders b ON c.Code = b.Country2 -- Join to find neighbors of Country2
 ),
 SwedenBordersFiveSteps AS (
     -- Base case: Find Sweden's immediate borders
     SELECT
-        code,
-        name,
-        0 AS steps
+        code,                         -- Sweden's code
+        name,                         -- Sweden's name
+        0 AS steps                    -- 0 steps for the starting point (Sweden itself)
     FROM
         CombinedBorders
     WHERE
-        code = 'S'
+        code = 'S'                    -- Starting from Sweden (code 'S')
     UNION ALL
     -- Recursive case: Find the next set of borders
     SELECT
-        cb.code,
-        cb.name,
-        sbfs.steps + 1
+        cb.code,                      -- Code of the neighboring country
+        cb.name,                      -- Name of the neighboring country
+        sbfs.steps + 1                -- Increment step count
     FROM
-        SwedenBordersFiveSteps sbfs
+        SwedenBordersFiveSteps sbfs   -- Previous step's results
     JOIN
-        CombinedBorders cb ON sbfs.code = cb.border_country
+        CombinedBorders cb ON sbfs.code = cb.border_country -- Find next neighbors
     WHERE
-        sbfs.steps < 5
+        sbfs.steps < 5                -- Limit recursion depth to 5 steps
 ), MinSteps AS (
     SELECT
-        code,
-        name,
-        MIN(steps) AS min_steps
+        code,                        -- Country code
+        name,                        -- Country name
+        MIN(steps) AS min_steps      -- Minimum steps required to reach this country
     FROM
         SwedenBordersFiveSteps
     GROUP BY
-        code, name
+        code, name                   -- Group by country to calculate the minimum steps
 )
 SELECT
-    code,
-    name,
-    min_steps AS steps
+    code,                            -- Country code
+    name,                            -- Country name
+    min_steps AS steps               -- Minimum steps to reach the country
 FROM
     MinSteps
 WHERE
-    code != 'S'
+    code != 'S'                      -- Exclude Sweden from the results
 ORDER BY
-    steps, code, name;
+    steps, code, name;               -- Order by steps (ascending), then code and name
 
+--2.
 -- Recursive Common Table Expression (CTE) to trace river branch connections
 WITH RECURSIVE RiverSystem AS (
     -- Initial selection of main rivers (base case for recursion)
