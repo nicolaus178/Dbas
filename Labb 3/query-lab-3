@@ -217,8 +217,8 @@ RankedBranches AS (
         -- Calculate total length of the river chain
         (
             SELECT SUM(r.Length)
-            FROM unnest(bc.RiverChain) AS chain_river
-            JOIN River r ON r.Name = chain_river
+            FROM unnest(bc.RiverChain) AS chain_river -- Unnest expands the riverchain array into rows, so we can compute the chain effectively. 
+            JOIN River r ON r.Name = chain_river -- We match each river in the expanded RiverChain array with its corresponding entry in the River table so we can get the length of each river. 
         ) AS TotalLength
     FROM BranchCounts bc
     JOIN LongestBranches lb 
@@ -229,7 +229,7 @@ SELECT
     Rank,                  -- Ranking of river chains
     Path,                  -- Readable path of river connections
     NumRivers,             -- Number of rivers in the chain
-    ROUND(TotalLength, 2) AS TotalLength  -- Total length rounded to 2 decimal places
+    ROUND(TotalLength) AS TotalLength  -- Total length rounded to 2 decimal places
 FROM RankedBranches
 -- Sort by number of rivers ascending, then by total length descending
 ORDER BY NumRivers ASC, TotalLength DESC;
