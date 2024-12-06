@@ -160,14 +160,13 @@ WHERE
 ORDER BY
     steps, code, name;
 
--- 2.
 -- Recursive Common Table Expression (CTE) to trace river branch connections
 WITH RECURSIVE RiverSystem AS (
     -- Initial selection of main rivers (base case for recursion)
     SELECT 
         Name,                   -- Current river name
         Name AS MainRiver,      -- Main river (parent river)
-        Name AS Branch,         -- Current branch 
+        Name AS Branch,         -- Current branch
         ARRAY[Name]::VARCHAR[] AS RiverChain  -- Array to track river chain
     FROM River
     -- Limit to specific rivers for analysis
@@ -184,7 +183,6 @@ WITH RECURSIVE RiverSystem AS (
     FROM RiverSystem rs
     JOIN River r ON rs.Branch = r.River  -- Join to find connected branches
 ),
-
 -- Calculate the number of rivers in each branch chain
 BranchCounts AS (
     SELECT 
@@ -194,7 +192,6 @@ BranchCounts AS (
         RiverChain               -- Full array of rivers in the chain
     FROM RiverSystem
 ),
-
 -- Find the maximum number of rivers for each main river
 LongestBranches AS (
     SELECT 
@@ -203,13 +200,15 @@ LongestBranches AS (
     FROM BranchCounts
     GROUP BY MainRiver
 ),
-
+-- Rank branch chains based on number of rivers
 RankedBranches AS (
     SELECT 
         bc.MainRiver,
-        array_to_string(bc.RiverChain, ' -> ') AS Path,
+        array_to_string(bc.RiverChain, ' -> ') AS Path,  -- Convert river chain to readable string
         bc.NumRivers,
+        -- Rank rivers based on the number of rivers in the chain
         RANK() OVER (ORDER BY bc.NumRivers ASC) AS Rank,
+        -- Calculate total length of the river chain
         (
             SELECT SUM(r.Length)
             FROM unnest(bc.RiverChain) AS chain_river
@@ -219,10 +218,12 @@ RankedBranches AS (
     JOIN LongestBranches lb 
         ON bc.MainRiver = lb.MainRiver AND bc.NumRivers = lb.MaxRivers
 )
+-- Final selection and output
 SELECT 
-    Rank,
-    Path,
-    NumRivers,
-    ROUND(TotalLength, 2) AS TotalLength
+    Rank,                  -- Ranking of river chains
+    Path,                  -- Readable path of river connections
+    NumRivers,             -- Number of rivers in the chain
+    ROUND(TotalLength, 2) AS TotalLength  -- Total length rounded to 2 decimal places
 FROM RankedBranches
+-- Sort by number of rivers ascending, then by total length descending
 ORDER BY NumRivers ASC, TotalLength DESC;
