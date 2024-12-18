@@ -229,7 +229,7 @@ SELECT
     Rank,                  -- Ranking of river chains
     Path,                  -- Readable path of river connections
     NumRivers,             -- Number of rivers in the chain
-    ROUND(TotalLength) AS TotalLength  -- Total length rounded to 2 decimal places
+    ROUND(TotalLength) AS TotalLength  -- Total length rounded
 FROM RankedBranches
 -- Sort by number of rivers ascending, then by total length descending
 ORDER BY NumRivers ASC, TotalLength DESC;

@@ -1,5 +1,5 @@
 1. When would a view be beneficial compared to regular queries? For what reasons?
-Istället för komplexa queries med stora databaser kan man spara dom som en view, kan användas för säkerhet, bara visa viss data. 
+A view is beneficial when you need to simplify complex queries, reuse query logic, control access to sensitive data. 
 
 2. What is stored in the database for non-materialised or materialised views
 respectively?
