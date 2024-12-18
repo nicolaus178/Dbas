@@ -14,9 +14,7 @@ def create_connection():
             host="psql-dd1368-ht23.sys.kth.se", 
             database="iggy",
             user="name",
-            password="code"
-            user="namn",
-            password="losen"
+            password="password"
         )
         return conn
     except psycopg2.Error as e:

