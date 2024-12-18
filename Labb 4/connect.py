@@ -13,8 +13,8 @@ def create_connection():
         conn = psycopg2.connect(
             host="psql-dd1368-ht23.sys.kth.se", 
             database="iggy",
-            user="namn",
-            password="lösen"
+            user="ncjsvg",
+            password="3azXPjEq"
         )
         return conn
     except psycopg2.Error as e:
@@ -40,16 +40,45 @@ def search_airports(cur, search_term):
             print("No airports found matching your search.")
     except psycopg2.Error as e:
         print("An error occurred while searching for airports:", e)
+
+def language_speakers(cur, language_name):
+    query = """
+        SELECT c.name, s.language, 
+               CAST(SUM(c.population * (s.percentage / 100.0)) AS BIGINT) AS numberspeaker
+        FROM country c
+        JOIN spoken s
+        ON c.code = s.country
+        WHERE s.language ILIKE %s
+        GROUP BY c.name, s.language
+        HAVING SUM(c.population * (s.percentage / 100.0)) > 0
+        ORDER BY numberspeaker DESC;
+    """
+    try:
+        cur.execute(query, (language_name,))
+        results = cur.fetchall()
+        if results:
+            print(f"Countries that speak '{language_name}' and the number of speakers:")
+            for country, language, speakers in results:
+                print(f"- {country}: {speakers:,} speakers")
+        else:
+            print(f"No countries found where '{language_name}' is spoken.")
+    except psycopg2.Error as e:
+        print("An error occurred while searching for language speakers:", e)
+
     
 def choose_task(cur):
-    select_task = input("Select which task to perform: \n1. Search for airports\n")
+    select_task = input("Select which task to perform: \n1. Search for airports\n2. List language speakers\n")
     if select_task not in ["1", "2", "3"]:
         print("Invalid task. Please select a valid task.")
-        return choose_task()
+        return choose_task(cur)
     if select_task == "1":
         print("Task 1: Search for airports")
         search_term = input("Search for airports by name or IATA code: ")
         search_airports(cur, search_term)
+    elif select_task == "2":
+        print("Task 2: List language speakers")
+        language_name = input("Enter the language name to search: ")
+        language_speakers(cur, language_name)
         
         
 
