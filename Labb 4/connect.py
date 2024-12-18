@@ -13,8 +13,8 @@ def create_connection():
         conn = psycopg2.connect(
             host="psql-dd1368-ht23.sys.kth.se", 
             database="iggy",
-            user="name",
-            password="password"
+            user="ncjsvg",
+            password="3azXPjEq"
         )
         return conn
     except psycopg2.Error as e:
@@ -65,6 +65,56 @@ def language_speakers(cur, language_name):
     except psycopg2.Error as e:
         print("An error occurred while searching for language speakers:", e)
 
+
+def check_desert_province_count(conn, desert, country):
+    # Check if a desert spans more than 9 provinces in a country
+    with conn.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM geo_desert 
+            WHERE Desert = %s AND Country = %s
+        """, (desert, country))
+        count = cursor.fetchone()[0]
+        if count >= 9:
+            print(f"A desert can span a maximum of 9 provinces. '{desert}' already spans {count} provinces.")
+            return False
+        return True
+
+
+def check_country_desert_count(conn, country):
+    # Check if a country already has 20 deserts
+    with conn.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(DISTINCT Desert) 
+            FROM geo_desert 
+            WHERE Country = %s
+        """, (country,))
+        count = cursor.fetchone()[0]
+        if count >= 20:
+            print(f"A country can contain a maximum of 20 deserts. '{country}' already has {count} deserts.")
+            return False
+        return True
+
+    
+def check_desert_area(cur, desert, country, province, desert_area):
+    # Query to get the area of the province
+    query = "SELECT Area FROM Province WHERE Name = %s AND Country = %s"
+    cur.execute(query, (province, country))
+    province_area = cur.fetchone()
+
+    # Ensure the province exists in the database
+    if province_area is None:
+        print(f"Province '{province}' not found in country '{country}'.")
+        return False
+
+    province_area = province_area[0]
+    
+    # Check if the desert's area exceeds 30 times the province's area
+    if desert_area > 30 * province_area:
+        print(f"The area of the desert '{desert}' cannot be more than 30 times the area of the province '{province}'.")
+        return False
+    else:
+        return True
 
 #Task 3a: Collect desert information
 def get_desert_info(cur):
@@ -142,23 +192,37 @@ def get_desert_info(cur):
     insert_desert(cur, name, area, country, province, coordinates)
 
 #Task 3b: Insert desert information
-def insert_desert(cur, name, area, country, province, coordinates):
-    
+def insert_desert(cur, desert, area, country, province, coordinates):
+    # Check if the desert's area is valid
+    if not check_desert_area(cur, desert, country, province, area):
+        print("Desert cannot be inserted due to invalid area.")
+        return False  # Exit the function if the area check fails
+
+    # Check if the desert doesn't exceed the allowed provinces in the country
+    if not check_desert_province_count(cur.connection, desert, country):
+        print("Desert cannot be inserted due to exceeding the province limit.")
+        return False  # Exit the function if the province count check fails
+
+    # Check if the country has less than 20 deserts
+    if not check_country_desert_count(cur.connection, country):
+        print("Desert cannot be inserted due to exceeding the desert limit in the country.")
+        return False  # Exit the function if the country desert count check fails
     # Insert into Geo_desert table
+
     try:
         query = """
             INSERT INTO geo_desert (Desert, Country, Province)
             VALUES (%s, %s, %s);
         """
-        cur.execute(query, (name, country, province))
-        print(f"Desert '{name}' successfully added intro Geo_desert.")
+        cur.execute(query, (desert, country, province))
+        print(f"Desert '{desert}' successfully added into Geo_desert.")
     except psycopg2.Error as e:
         print("An error occurred while inserting into Geo_desert:", e)
     
     # Insert into Desert table if not already exists
     query = "SELECT 1 FROM desert WHERE name = %s LIMIT 1;"
     try:
-        cur.execute(query, (name,))
+        cur.execute(query, (desert,))
         result = cur.fetchone()
         if not result:
             try:
@@ -168,13 +232,15 @@ def insert_desert(cur, name, area, country, province, coordinates):
                     INSERT INTO desert (Name, Area, Coordinates)
                     VALUES (%s, %s, ROW(%s, %s));
                 """
-                cur.execute(query, (name, area, latitude, longitude))
-                print(f"Desert '{name}' successfully added into Desert.")
+                cur.execute(query, (desert, area, latitude, longitude))
+                print(f"Desert '{desert}' successfully added into Desert.")
             except psycopg2.Error as e:
                 print("An error occurred while inserting into Desert:", e)
     except psycopg2.Error as e:
         print("An error occurred while checking if desert exists:", e)
-    
+        
+    return True  # Return True if all checks passed and desert was successfully inserted
+
 
 #Function to choose a task
 def choose_task(cur):
