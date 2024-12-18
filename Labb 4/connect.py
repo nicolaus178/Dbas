@@ -13,8 +13,8 @@ def create_connection():
         conn = psycopg2.connect(
             host="psql-dd1368-ht23.sys.kth.se", 
             database="iggy",
-            user="ncjsvg",
-            password="3azXPjEq"
+            user="name",
+            password="code"
         )
         return conn
     except psycopg2.Error as e:
